@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Flip Tracker Startup Script
 # Auto-update from Git on startup
 echo "Checking for updates..."
 
