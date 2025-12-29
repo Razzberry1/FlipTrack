@@ -46,10 +46,18 @@ function initializeDatabase() {
       quantity_owned INTEGER NOT NULL DEFAULT 0,
       quantity_sold INTEGER NOT NULL DEFAULT 0,
       order_status TEXT NOT NULL DEFAULT 'Pending',
+      image_url TEXT,
       date_added TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add image_url column if it doesn't exist (for existing databases)
+  try {
+    db.exec(`ALTER TABLE inventory ADD COLUMN image_url TEXT`);
+  } catch (e) {
+    // Column already exists, ignore error
+  }
 
   // Sales table - each sale is its own entry
   db.exec(`

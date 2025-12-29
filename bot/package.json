@@ -1,0 +1,12 @@
+{
+  "name": "flip-tracker-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Flip Tracker",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  }
+}

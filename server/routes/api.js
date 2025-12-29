@@ -6,7 +6,7 @@ const { shortenProductName, detectCategory } = require('../models/nameShortener'
 // POST /api/checkout - Discord bot pushes checkout data
 router.post('/checkout', (req, res) => {
   try {
-    const { product, sku, qty, price } = req.body;
+    const { product, sku, qty, price, imageUrl } = req.body;
 
     if (!product || !sku || !qty || !price) {
       return res.status(400).json({ error: 'Missing required fields: product, sku, qty, price' });
@@ -50,14 +50,15 @@ router.post('/checkout', (req, res) => {
     const existing = db.prepare('SELECT * FROM inventory WHERE sku = ?').get(sku);
 
     if (existing) {
-      // Update quantity and price (use latest price with tax)
+      // Update quantity, price, and image (use latest values)
       db.prepare(`
         UPDATE inventory
         SET quantity_owned = quantity_owned + ?,
             buy_price = ?,
+            image_url = COALESCE(?, image_url),
             updated_at = CURRENT_TIMESTAMP
         WHERE sku = ?
-      `).run(quantity, priceWithTax, sku);
+      `).run(quantity, priceWithTax, imageUrl || null, sku);
 
       const updated = db.prepare('SELECT * FROM inventory WHERE sku = ?').get(sku);
 
@@ -69,9 +70,9 @@ router.post('/checkout', (req, res) => {
     } else {
       // Create new inventory item
       const result = db.prepare(`
-        INSERT INTO inventory (sku, item_name, category, buy_price, quantity_owned, order_status)
-        VALUES (?, ?, ?, ?, ?, 'Pending')
-      `).run(sku, itemName, category, priceWithTax, quantity);
+        INSERT INTO inventory (sku, item_name, category, buy_price, quantity_owned, order_status, image_url)
+        VALUES (?, ?, ?, ?, ?, 'Pending', ?)
+      `).run(sku, itemName, category, priceWithTax, quantity, imageUrl || null);
 
       const newItem = db.prepare('SELECT * FROM inventory WHERE id = ?').get(result.lastInsertRowid);
 

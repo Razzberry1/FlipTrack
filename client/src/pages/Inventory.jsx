@@ -178,6 +178,7 @@ function Inventory() {
           <table>
             <thead>
               <tr>
+                <th className="w-20">Image</th>
                 <th>Item Name</th>
                 <th>SKU</th>
                 <th>Category</th>
@@ -190,6 +191,26 @@ function Inventory() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
+                  <td className="p-2">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.item_name}
+                        className="w-14 h-14 object-cover rounded border border-gray-200 dark:border-gray-700"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '';
+                          e.target.className = 'hidden';
+                          e.target.nextSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-14 h-14 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center ${item.image_url ? 'hidden' : ''}`}>
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </td>
                   <td>
                     {editingItem?.id === item.id ? (
                       <input

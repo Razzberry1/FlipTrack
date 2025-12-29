@@ -4,6 +4,9 @@ node_modules/
 # Database
 database.sqlite
 
+# Bot pending checkouts
+bot/pending_checkouts.json
+
 # Build output
 client/dist/
 client/build/
