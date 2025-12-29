@@ -19,6 +19,7 @@ function Inventory() {
   const [showSellModal, setShowSellModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [editingQty, setEditingQty] = useState(null); // { id, quantity_owned }
 
   const inventory = useInventory();
   const sales = useSales();
@@ -101,6 +102,18 @@ function Inventory() {
       fetchItems();
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
+    }
+  };
+
+  const handleQtyChange = async (id, newQty) => {
+    if (newQty < 1) return;
+    try {
+      await inventory.update(id, { quantity_owned: newQty });
+      toast.success('Quantity updated');
+      setEditingQty(null);
+      fetchItems();
+    } catch (err) {
+      toast.error(err.message || 'Failed to update quantity');
     }
   };
 
@@ -213,10 +226,61 @@ function Inventory() {
                   <td>{item.category}</td>
                   <td>${item.buy_price.toFixed(2)}</td>
                   <td>
-                    <span className={item.quantity_in_stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                      {item.quantity_in_stock}
-                    </span>
-                    <span className="text-gray-400"> / {item.quantity_owned}</span>
+                    <div className="flex items-center gap-1">
+                      <span className={item.quantity_in_stock > 0 ? 'text-green-600' : 'text-red-600'}>
+                        {item.quantity_in_stock}
+                      </span>
+                      <span className="text-gray-400">/</span>
+                      {editingQty?.id === item.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setEditingQty({ ...editingQty, quantity_owned: editingQty.quantity_owned - 1 })}
+                            disabled={editingQty.quantity_owned <= item.quantity_sold + 1}
+                            className="w-6 h-6 flex items-center justify-center bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min={item.quantity_sold + 1}
+                            value={editingQty.quantity_owned}
+                            onChange={(e) => setEditingQty({ ...editingQty, quantity_owned: Math.max(item.quantity_sold + 1, parseInt(e.target.value, 10) || 1) })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleQtyChange(item.id, editingQty.quantity_owned);
+                              if (e.key === 'Escape') setEditingQty(null);
+                            }}
+                            className="w-14 text-center text-sm"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => setEditingQty({ ...editingQty, quantity_owned: editingQty.quantity_owned + 1 })}
+                            className="w-6 h-6 flex items-center justify-center bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
+                          >
+                            +
+                          </button>
+                          <button
+                            onClick={() => handleQtyChange(item.id, editingQty.quantity_owned)}
+                            className="ml-1 text-green-600 hover:text-green-700 text-xs"
+                          >
+                            ✓
+                          </button>
+                          <button
+                            onClick={() => setEditingQty(null)}
+                            className="text-gray-500 hover:text-gray-600 text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <span
+                          onClick={() => setEditingQty({ id: item.id, quantity_owned: item.quantity_owned })}
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-0.5 rounded"
+                          title="Click to adjust quantity"
+                        >
+                          {item.quantity_owned}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <span className={`badge ${item.order_status === 'Delivered' ? 'badge-green' : 'badge-yellow'}`}>
